@@ -27,8 +27,8 @@ A CLI tool for downloading images from [Are.na](https://are.na) channels.
 ## Installation
 
 ```bash
-git clone https://github.com/strangesongs/arena-chan-dl
-cd arena-chan-dl
+git clone https://github.com/strangesongs/arena-dl
+cd arena-dl
 npm install
 npm link
 ```
@@ -253,6 +253,6 @@ arena-dl
 
 ## Credits
 
-Inspired by [aredotna/download-arena-channel](https://github.com/aredotna/download-arena-channel) and [tg-z/arena-chan-dl](https://github.com/tg-z/arena-chan-dl).
+Inspired by [aredotna/download-arena-channel](https://github.com/aredotna/download-arena-channel).
 
 MIT License

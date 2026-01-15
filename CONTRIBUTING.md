@@ -5,8 +5,8 @@ Thanks for your interest! Here's how to contribute.
 ## Local Development
 
 ```bash
-git clone https://github.com/strangesongs/arena-chan-dl
-cd arena-chan-dl
+git clone https://github.com/strangesongs/arena-dl
+cd arena-dl
 npm install
 npm link
 ```

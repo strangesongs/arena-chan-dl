@@ -6,9 +6,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/strangesongs/arena-chan-dl.git"
+    "url": "git+https://github.com/strangesongs/arena-dl.git"
   },
-  "homepage": "https://github.com/strangesongs/arena-chan-dl#readme",
+  "homepage": "https://github.com/strangesongs/arena-dl#readme",
   "author": "strangesongs",
   "private": false,
   "preferGlobal": true,

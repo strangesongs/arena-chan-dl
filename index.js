@@ -336,7 +336,7 @@ class ArenaDownloader {
 
     } catch (error) {
       console.error(chalk.red(`\n❌ Error: ${error.message}`));
-      console.error(chalk.gray(`📖 See docs: https://github.com/strangesongs/arena-chan-dl#error-handling\n`));
+      console.error(chalk.gray(`📖 See docs: https://github.com/strangesongs/arena-dl#error-handling\n`));
       process.exit(1);
     }
   }
