@@ -1,57 +1,95 @@
-# `$ arena-chan-dl`
+# arena-chan-dl v2.0
 
-<p align="center">
-<a href="https://github.com/tg-z/arena-chan-dl/stargazers"><img alt="github stars" src="https://badgen.net/github/stars/tg-z/arena-chan-dl?color=cyan"></a>
-<a href="https://www.npmjs.org/package/arena-chan-dl"><img src="https://badgen.net/npm/v/arena-chan-dl?color=cyan" alt="npm version"></a>
-<a href="https://www.npmjs.org/package/arena-chan-dl"><img src="https://badgen.net/npm/dt/arena-chan-dl?color=cyan" alt="npm downloads"></a>
-</p>
+**Rebuilt for reliability** - A CLI tool for downloading and archiving images from [Are.na](https://are.na) channels.
 
-<p align="center">
-cli tool for archiving are.na channel content with ease.
-</p>
+## Features
 
-<p align="center">
-  <a href="#install">install</a> •
-  <a href="#usage">usage</a> •
-  <a href="#extra">credit</a><br>
-</p>
+✅ **Reliable downloads** - Browser-like headers bypass CDN blocks  
+✅ **Progress tracking** - Real-time progress with detailed statistics  
+✅ **Descriptive filenames** - Images saved with block ID and title  
+✅ **Resume capability** - Automatically skips already downloaded files  
+✅ **Error recovery** - Continues on failures, shows summary at end  
+✅ **Rate limiting** - Polite delays between requests  
+✅ **Global installation** - Install once, run from anywhere  
 
-## install
-
-available from the [npm](https://www.npmjs.org/) registry. requires [node.js](https://nodejs.org/en/download/) to be installed.
+## Installation
 
 ```bash
-# install globally with npm
-npm i -g arena-chan-dl
-```
-
-```bash
-# install locally with git
+# Clone the repository
 git clone https://github.com/tg-z/arena-chan-dl
-
-# go to repo dir
 cd arena-chan-dl
 
-# install dependencies
-npm i
+# Install dependencies
+npm install
+
+# Install globally (so you can run from anywhere)
+npm link
 ```
 
-## usage
+Now you can use `arena-chan-dl` from any directory on your system!
+
+## Usage
+
 ```bash
-# help
-arena-chan-dl -h, --help
+# Basic usage - download to ./downloads
+arena-chan-dl get <channel-slug>
 
-# define channel-slug + output path
-arena-chan-dl get <slug> <dir>
+# Specify output directory
+arena-chan-dl get <channel-slug> /path/to/output
 
-# download channel to a relative folder
-arena-chan-dl get frog ./downloads
+# Use full URL (slug will be extracted)
+arena-chan-dl get https://www.are.na/user/channel-slug
 
-# download channel to custom directory
-arena-chan-dl get frog ~/documents/promnesia/are.na
+# Force re-download existing files
+arena-chan-dl get <channel-slug> --force
 ```
 
-![demo](doc/demo.gif)
+## Examples
 
-## credit
-this is a fork of [aredotna/download-arena-channel](https://github.com/aredotna/download-arena-channel) <3
+```bash
+# Download "frog" channel to current directory's downloads folder
+arena-chan-dl get frog
+
+# Download to specific directory
+arena-chan-dl get frog ~/Documents/arena-archive
+
+# Download with full URL
+arena-chan-dl get https://www.are.na/period-6wkfhxbqle8/we-take-care-of-each-other-xr-skwcd1ta
+
+# Re-download everything (ignore existing files)
+arena-chan-dl get frog --force
+```
+
+## Output Structure
+
+```
+downloads/
+└── channel-slug/
+    ├── 12345_image-title.jpg
+    ├── 67890_another-image.png
+    └── ...
+```
+
+Image files are named with their block ID and title for easy identification.
+
+## What Changed in v2.0
+
+- ✅ Fixed yargs integration (works with modern versions)
+- ✅ Fixed chalk compatibility (v4 instead of v5 ESM)
+- ✅ Added browser headers to bypass CloudFront WAF
+- ✅ Modern async/await (no more promise chains)
+- ✅ Proper error handling and recovery
+- ✅ Real-time progress tracking
+- ✅ Resume capability (skip existing files)
+- ✅ Rate limiting to be CDN-friendly
+- ✅ File size validation (detects empty downloads)
+- ✅ Support for full URL input
+
+## License
+
+MIT
+
+## Credits
+
+Rebuilt from [tg-z/arena-chan-dl](https://github.com/tg-z/arena-chan-dl)  
+Original fork of [aredotna/download-arena-channel](https://github.com/aredotna/download-arena-channel)
