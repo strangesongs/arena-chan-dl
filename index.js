@@ -50,12 +50,16 @@ class ArenaDownloader {
     this.skipExisting = options.skipExisting !== false;
     this.dryRun = options.dryRun || false;
     this.exportFormat = options.exportFormat;
+    this.blockTypes = options.blockTypes || ['image'];  // Default to images only
+    this.withSources = options.withSources || false;
+    this.includeMetadata = options.includeMetadata || false;
     this.stats = {
       total: 0,
       downloaded: 0,
       skipped: 0,
       failed: 0,
-      noImage: 0
+      noImage: 0,
+      filtered: 0
     };
     this.failedBlocks = [];
     this.downloadedBlocks = [];
@@ -177,6 +181,7 @@ class ArenaDownloader {
       if (this.dryRun) {
         this.stats.downloaded++;
         this.downloadedBlocks.push(block);
+        this.saveBlockMetadata(block, filepath);
         return { success: true, skipped: false };
       }
 
@@ -195,6 +200,9 @@ class ArenaDownloader {
       fs.writeFileSync(filepath, response.data);
       this.stats.downloaded++;
       this.downloadedBlocks.push(block);
+      
+      // Save metadata if requested
+      this.saveBlockMetadata(block, filepath);
 
       // Small delay between downloads to be polite
       await new Promise(r => setTimeout(r, 200));
@@ -209,6 +217,35 @@ class ArenaDownloader {
       console.error(chalk.red(`\n  ✗ ${msg}`));
       return { success: false, error: error.message };
     }
+  }
+
+  saveBlockMetadata(block, filepath) {
+    if (!this.includeMetadata && !this.withSources) return;
+
+    const metadataPath = filepath.replace(/\.[^.]+$/, '.json');
+    const metadata = {
+      id: block.id,
+      title: block.title,
+      description: block.description,
+      type: block.class,
+      created_at: block.created_at,
+      updated_at: block.updated_at,
+      comment_count: block.comment_count
+    };
+
+    if (this.withSources && block.source) {
+      metadata.source = {
+        title: block.source.title,
+        url: block.source.url
+      };
+    }
+
+    if (block.image) {
+      metadata.image_url = block.image.original.url;
+      metadata.content_type = block.image.content_type;
+    }
+
+    fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
   }
 
   async downloadInChunks(blocks, channelDir) {
@@ -259,21 +296,32 @@ class ArenaDownloader {
       // Fetch all blocks
       const blocks = await this.fetchAllBlocks(channelInfo.length);
       
-      // Filter for blocks with images
-      const imageBlocks = blocks.filter(b => b.image);
-      console.log(chalk.blue(`🖼️  Found ${imageBlocks.length} image${imageBlocks.length !== 1 ? 's' : ''} ${this.dryRun ? 'to be downloaded' : 'to download'}\n`));
+      // Filter by block type
+      const filteredBlocks = blocks.filter(b => {
+        const type = b.class ? b.class.toLowerCase() : 'unknown';
+        // Image blocks have .image, Link blocks have .image (screenshot), others don't
+        if (this.blockTypes.includes('image') && b.image && type === 'image') return true;
+        if (this.blockTypes.includes('link') && b.image && type === 'link') return true;
+        if (this.blockTypes.includes('embed') && type === 'media') return true;
+        if (this.blockTypes.includes('attachment') && type === 'attachment') return true;
+        if (this.blockTypes.includes('text') && type === 'text') return true;
+        return false;
+      });
+
+      this.stats.filtered = blocks.length - filteredBlocks.length;
+      console.log(chalk.blue(`🖼️  Found ${filteredBlocks.length} matching item${filteredBlocks.length !== 1 ? 's' : ''} ${this.dryRun ? 'to preview' : 'to download'}\n`));
 
       // Download
       console.log(chalk.blue(`${this.dryRun ? '🔍' : '⬇️'}  ${this.dryRun ? 'Previewing' : 'Starting'} download...`));
-      await this.downloadInChunks(imageBlocks, channelDir);
+      await this.downloadInChunks(filteredBlocks, channelDir);
 
       // Summary
       console.log(chalk.green(`\n✅ ${this.dryRun ? 'Dry-run' : 'Download'} complete!`));
       console.log(chalk.gray('─'.repeat(50)));
       console.log(chalk.white(`Total items:       ${this.stats.total}`));
-      console.log(chalk.green(`Would download:    ${this.stats.downloaded}`));
+      console.log(chalk.green(`Downloaded:        ${this.stats.downloaded}`));
       console.log(chalk.yellow(`Already saved:     ${this.stats.skipped}`));
-      console.log(chalk.gray(`Non-images:        ${this.stats.noImage}`));
+      console.log(chalk.gray(`Filtered out:      ${this.stats.filtered}`));
       console.log(chalk.red(`Failed:            ${this.stats.failed}`));
       console.log(chalk.gray('─'.repeat(50)));
 
@@ -333,6 +381,21 @@ yargs(hideBin(process.argv))
           describe: 'Export download list (csv, json)',
           type: 'string',
           choices: ['csv', 'json']
+        })
+        .option('block-types', {
+          describe: 'Types to download (image, link, embed, attachment, text)',
+          type: 'string',
+          default: 'image'
+        })
+        .option('with-sources', {
+          describe: 'Save original source URLs for archived content',
+          type: 'boolean',
+          default: false
+        })
+        .option('include-metadata', {
+          describe: 'Save block descriptions and metadata',
+          type: 'boolean',
+          default: false
         });
     },
     async (argv) => {
@@ -375,7 +438,10 @@ yargs(hideBin(process.argv))
       const downloader = new ArenaDownloader(slug, argv.dir, {
         skipExisting: !argv.force,
         dryRun: argv.dryRun,
-        exportFormat: argv.format
+        exportFormat: argv.format,
+        blockTypes: argv.blockTypes.split(',').map(t => t.trim()),
+        withSources: argv.withSources,
+        includeMetadata: argv.includeMetadata
       });
 
       if (argv.watch) {
@@ -399,6 +465,9 @@ yargs(hideBin(process.argv))
   .example('$0 gallery --dry-run', 'Preview what would download')
   .example('$0 inspiration --watch 30', 'Check for updates every 30 minutes')
   .example('$0 collection --format json', 'Export list as JSON')
+  .example('$0 mixed --block-types image,link', 'Download images and link screenshots')
+  .example('$0 archive --include-metadata', 'Save descriptions and metadata')
+  .example('$0 research --with-sources', 'Save original source URLs')
   .option('help', {
     alias: 'h',
     describe: 'Show help'
