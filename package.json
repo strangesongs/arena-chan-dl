@@ -1,7 +1,7 @@
 {
   "name": "arena-dl",
-  "version": "2.0.0",
-  "description": "are.na channel downloader cli",
+  "version": "1.0.0",
+  "description": "CLI tool for downloading images from Are.na channels",
   "main": "index.js",
   "license": "MIT",
   "repository": {
